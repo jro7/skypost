@@ -87,29 +87,27 @@ module Skypost
       facets = []
       link_pattern = /<a href="([^"]*)">(.*?)<\/a>/
       
-      offset = 0
-      clean_text = text.dup
-
-      while (match = link_pattern.match(clean_text))
+      # First, find all matches to calculate correct byte positions
+      matches = text.to_enum(:scan, link_pattern).map { Regexp.last_match }
+      plain_text = text.gsub(/<a href="[^"]*">|<\/a>/, '')  # Text with HTML removed
+      
+      matches.each do |match|
         url = match[1]
         link_text = match[2]
-        start_index = match.begin(0) - offset
-        end_index = start_index + link_text.length
         
-        facets << {
-          index: {
-            byteStart: start_index,
-            byteEnd: end_index
-          },
-          features: [{
-            "$type": "app.bsky.richtext.facet#link",
-            uri: url
-          }]
-        }
-
-        # Remove the processed link and update offset
-        clean_text.sub!(match[0], link_text)
-        offset += (match[0].length - link_text.length)
+        # Find the link text in the plain text to get correct byte positions
+        if link_position = plain_text.index(link_text)
+          facets << {
+            index: {
+              byteStart: link_position,
+              byteEnd: link_position + link_text.bytesize
+            },
+            features: [{
+              "$type": "app.bsky.richtext.facet#link",
+              uri: url
+            }]
+          }
+        end
       end
 
       facets
