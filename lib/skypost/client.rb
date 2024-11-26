@@ -38,12 +38,14 @@ module Skypost
       ensure_authenticated
 
       current_time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%S.%3NZ")
+      facets = extract_links(text)
       
       request_body = {
         repo: @session["did"],
         collection: "app.bsky.feed.post",
         record: {
-          text: text,
+          text: text.gsub(/<a href="[^"]*">|<\/a>/, ''),  # Remove HTML tags but keep link text
+          facets: facets,
           createdAt: current_time,
           "$type": "app.bsky.feed.post"
         }
@@ -79,6 +81,38 @@ module Skypost
         f.request :json
         f.response :raise_error
       end
+    end
+
+    def extract_links(text)
+      facets = []
+      link_pattern = /<a href="([^"]*)">(.*?)<\/a>/
+      
+      offset = 0
+      clean_text = text.dup
+
+      while (match = link_pattern.match(clean_text))
+        url = match[1]
+        link_text = match[2]
+        start_index = match.begin(0) - offset
+        end_index = start_index + link_text.length
+        
+        facets << {
+          index: {
+            byteStart: start_index,
+            byteEnd: end_index
+          },
+          features: [{
+            "$type": "app.bsky.richtext.facet#link",
+            uri: url
+          }]
+        }
+
+        # Remove the processed link and update offset
+        clean_text.sub!(match[0], link_text)
+        offset += (match[0].length - link_text.length)
+      end
+
+      facets
     end
   end
 end

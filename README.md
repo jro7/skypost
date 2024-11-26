@@ -31,6 +31,9 @@ client = Skypost::Client.new("username.bsky.social", "your-app-password")
 
 # Post a message
 client.post("Hello from Skypost!")
+
+# Post a message with a clickable link
+client.post('Check out this cool website: <a href="https://example.com">Example</a>!')
 ```
 
 ### App Password
