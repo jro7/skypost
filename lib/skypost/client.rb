@@ -4,7 +4,7 @@ require 'json'
 module Skypost
   class Client
     BASE_URL = "https://bsky.social"
-    
+
     class AuthenticationError < StandardError; end
     class ValidationError < StandardError; end
 
@@ -39,7 +39,7 @@ module Skypost
 
       current_time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%S.%3NZ")
       facets = extract_links(text)
-      
+
       request_body = {
         repo: @session["did"],
         collection: "app.bsky.feed.post",
@@ -88,21 +88,26 @@ module Skypost
     def extract_links(text)
       facets = []
       link_pattern = /<a href="([^"]*)">(.*?)<\/a>/
-      
+
       # First, find all matches to calculate correct byte positions
       matches = text.to_enum(:scan, link_pattern).map { Regexp.last_match }
       plain_text = text.gsub(/<a href="[^"]*">|<\/a>/, '')
-      
+
       matches.each do |match|
         url = match[1]
         link_text = match[2]
-        
+
         # Find the link text in the plain text to get correct byte positions
         if link_position = plain_text.index(link_text)
+          # Convert the substring up to link_position to UTF-16 code units
+          prefix = plain_text[0...link_position]
+          start_pos = prefix.encode('UTF-16LE').size / 2
+          end_pos = start_pos + link_text.encode('UTF-16LE').size / 2
+
           facets << {
             index: {
-              byteStart: link_position,
-              byteEnd: link_position + link_text.bytesize
+              byteStart: start_pos,
+              byteEnd: end_pos
             },
             features: [{
               "$type": "app.bsky.richtext.facet#link",
