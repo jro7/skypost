@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "skypost"
-  spec.version       = "0.0.1"
+  spec.version       = "0.0.2"
   spec.authors       = ["Jeroen Roosenboom"]
   spec.email         = ["hi@jro7.com"]
 
@@ -10,6 +10,8 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
 
+  spec.metadata["homepage_uri"] = spec.homepage
+
   spec.files         = Dir["lib/**/*", "README.md", "LICENSE.txt"]
   spec.require_paths = ["lib"]
 
@@ -18,5 +20,5 @@ Gem::Specification.new do |spec|
   
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "minitest", "~> 5.0"
 end

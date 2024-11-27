@@ -83,13 +83,15 @@ module Skypost
       end
     end
 
+    public
+
     def extract_links(text)
       facets = []
       link_pattern = /<a href="([^"]*)">(.*?)<\/a>/
       
       # First, find all matches to calculate correct byte positions
       matches = text.to_enum(:scan, link_pattern).map { Regexp.last_match }
-      plain_text = text.gsub(/<a href="[^"]*">|<\/a>/, '')  # Text with HTML removed
+      plain_text = text.gsub(/<a href="[^"]*">|<\/a>/, '')
       
       matches.each do |match|
         url = match[1]
